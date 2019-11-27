@@ -50,7 +50,7 @@ public class Poseidon extends TimedRobot {
     s = Superstructure.getInstance();
     swerve = Swerve.getInstance();
     subsystems = new SubsystemManager(
-      Arrays.asList(swerve, s));
+      Arrays.asList(swerve));
 
     subsystems.registerEnabledLoops(enabledLooper);
 		subsystems.registerDisabledLoops(disabledLooper);
@@ -104,6 +104,7 @@ public class Poseidon extends TimedRobot {
     try {
       //driver.update();
       swerve.sendInput(-oi.controller.getRawAxis(1), oi.controller.getRawAxis(0), oi.controller.getRawAxis(4));
+      subsystems.outputToSmartDashboard();
 		} catch (Throwable t) {
 			CrashTracker.logThrowableCrash(t);
 			throw t;

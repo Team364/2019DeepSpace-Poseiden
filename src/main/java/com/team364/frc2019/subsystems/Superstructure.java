@@ -127,6 +127,7 @@ public class Superstructure extends Subsystem {
 		@Override
 		public void onLoop(double timestamp) {
 			synchronized(Superstructure.this){
+
 				if(!activeRequestsCompleted){
 					if(newRequests){
 						if(activeRequests.isParallel()){

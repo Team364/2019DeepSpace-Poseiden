@@ -38,7 +38,7 @@ public class RobotMap {
     /**Front Left */
     public static final boolean MOD1DRIVEINVERT = true;
     /**Back Left */
-    public static final boolean MOD2DRIVEINVERT = true;
+    public static final boolean MOD2DRIVEINVERT = false;
     /**Back Right */
     public static final boolean MOD3DRIVEINVERT = false;
 

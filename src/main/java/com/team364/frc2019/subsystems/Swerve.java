@@ -2,7 +2,12 @@ package com.team364.frc2019.subsystems;
 
 import static com.team364.frc2019.Conversions.*;
 import static com.team364.frc2019.RobotMap.*;
+
+import java.util.Arrays;
+import java.util.List;
+
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.team1323.loops.ILooper;
 import com.team1323.loops.Loop;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -19,6 +24,8 @@ public class Swerve extends Subsystem {
 	 * 3 is Back Right
 	 */
     private SwerveMod[] mSwerveModules;
+    private List<SwerveMod> modules;
+    private double check = 0.0;
 
 
     public Swerve() {
@@ -53,7 +60,8 @@ public class Swerve extends Subsystem {
                             MOD3OFFSET)
             };
          
-            
+            modules = Arrays.asList(mSwerveModules[0], mSwerveModules[1], mSwerveModules[2], mSwerveModules[3]);
+
     } 
 
     public synchronized static Swerve getInstance() {
@@ -73,9 +81,10 @@ public class Swerve extends Subsystem {
             for(SwerveMod mod : getSwerveModules()){
                 Vector2 newTranslation = null;
                 //newTranslation = translation.rotateBy(Rotation2.fromDegrees(getGyro()));
-
+                newTranslation = translation;
                 velocity = mod.getModulePosition().normal().scale(deadband(rotation)).add(newTranslation);
                 mod.setTargetVelocity(velocity, speed, rotation);
+                check = translation.x;
             }        
     }
     public void updateKinematics(){
@@ -85,11 +94,6 @@ public class Swerve extends Subsystem {
         }
     }
 
-    public void stopDriveMotors() {
-        for (SwerveMod module : mSwerveModules) {
-            module.setTargetSpeed(0);
-        }
-    }
 
     public SwerveMod[] getSwerveModules() {
         return mSwerveModules;
@@ -120,15 +124,22 @@ public class Swerve extends Subsystem {
     
     @Override
 	public synchronized void stop() {
+        modules.forEach((m) -> m.stop());
+
     }
     @Override
 	public synchronized void outputTelemetry() {
+        modules.forEach((m) -> m.outputTelemetry());
+        //System.out.println(check);
     }
+    @Override
+	public void registerEnabledLoops(ILooper enabledLooper) {
+		enabledLooper.register(loop);
+	}
 
 
     //-------------------------------------LOOP--------------------------------------------
     
-	private Swerve mSwerve;
 	public int cycles = 0;
 
 	double forward;
@@ -138,13 +149,35 @@ public class Swerve extends Subsystem {
 
 	Vector2 lastTranslation;
 	double lastRotation;
-	double plzStop = 0;
-
     
     public void sendInput(double inputForward, double inputStrafe, double inputRotation){
         forward = inputForward;
         strafe = inputStrafe;
         rotation = inputRotation;
+    }
+    public synchronized void updateControlCycle(){
+        boolean zeroPoint = false;
+        if(zeroPoint){
+            translation = new Vector2(-1, 0);
+        }
+        else{
+            translation = new Vector2(forward, strafe);
+        }
+        if (Math.abs(forward) > STICKDEADBAND || Math.abs(strafe) > STICKDEADBAND || Math.abs(rotation) > STICKDEADBAND) {
+            holonomicDrive(translation, rotation, !zeroPoint);
+            lastTranslation = translation;
+            lastRotation = rotation;
+            cycles++;
+
+        } else {
+            if(cycles != 0){
+
+                holonomicDrive(lastTranslation, lastRotation, false);
+            }
+        }	
+        if(cycles != 0){
+        updateKinematics();
+        }
     }
 
 	private final Loop loop = new Loop(){
@@ -152,45 +185,35 @@ public class Swerve extends Subsystem {
 		@Override
 		public void onStart(double timestamp) {
 			synchronized(Swerve.this){
-				mSwerve.stopDriveMotors();
+				stop();
 			}
 		}
 
 		@Override
 		public void onLoop(double timestamp) {
 			synchronized(Swerve.this){
-				boolean zeroPoint = false;
-				if(zeroPoint){
-					translation = new Vector2(-1, 0);
-				}
-				else{
-					translation = new Vector2(forward, strafe);
-				}
-				if (Math.abs(forward) > STICKDEADBAND || Math.abs(strafe) > STICKDEADBAND || Math.abs(rotation) > STICKDEADBAND) {
-					mSwerve.holonomicDrive(translation, rotation, !zeroPoint);
-					lastTranslation = translation;
-					lastRotation = rotation;
-					cycles++;
-
-				} else {
-					if(cycles != 0){
-
-						mSwerve.holonomicDrive(lastTranslation, lastRotation, false);
-					}
-				}	
-				if(cycles != 0){
-				mSwerve.updateKinematics();
-				}
+				updateControlCycle();
 			}
 		}
 
 		@Override
 		public void onStop(double timestamp) {
 			synchronized(Swerve.this){
-				mSwerve.stopDriveMotors();
+				stop();
 			}
 		}
 		
-	};
+    };
+    
+    
+	@Override
+	public synchronized void readPeriodicInputs() {
+        modules.forEach((m) -> m.readPeriodicInputs());
+	}
+
+	@Override
+	public synchronized void writePeriodicOutputs() {
+		modules.forEach((m) -> m.writePeriodicOutputs());
+	}
     
 }

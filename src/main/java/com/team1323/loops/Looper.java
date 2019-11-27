@@ -18,6 +18,8 @@ public class Looper implements ILooper {
     public final double kPeriod = 0.02;
 
     private boolean running_;
+    private boolean did_I_run = false;
+
 
     private final Notifier notifier_;
     private final List<Loop> loops_;
@@ -59,6 +61,8 @@ public class Looper implements ILooper {
 
     public synchronized void start() {
         if (!running_) {
+            did_I_run = true;
+
             System.out.println("Starting loops");
             synchronized (taskRunningLock_) {
                 timestamp_ = Timer.getFPGATimestamp();
@@ -88,5 +92,6 @@ public class Looper implements ILooper {
 
     public void outputToSmartDashboard() {
         SmartDashboard.putNumber("looper_dt", dt_);
+        System.out.println(did_I_run);
     }
 }

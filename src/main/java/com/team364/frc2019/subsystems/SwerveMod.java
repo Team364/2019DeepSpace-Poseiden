@@ -7,11 +7,12 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.team1323.lib.util.Util;
 //import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.team364.frc2019.misc.math.Vector2;
 
 
-public class SwerveMod{
+public class SwerveMod extends Subsystem{
     private double lastTargetAngle = 0;
     public final int moduleNumber;
 
@@ -28,6 +29,9 @@ public class SwerveMod{
     public Vector2 velocity;
     public double currentAngle;
 
+    private PeriodicIO periodicIO = new PeriodicIO();
+
+
     public SwerveMod(int moduleNumber, Vector2 modulePosition, TalonSRX angleMotor, TalonSRX driveMotor, boolean invertDrive, boolean invertSensorPhase, int zeroOffset) {
         this.moduleNumber = moduleNumber;
         this.modulePosition = modulePosition;
@@ -37,6 +41,8 @@ public class SwerveMod{
         targetAngle = 0;
         targetSpeed = 0;
         currentAngle = 0;
+
+        
 
 
         // Configure Angle Motor
@@ -67,6 +73,11 @@ public class SwerveMod{
 
     }
 
+    @Override
+	public synchronized void stop(){
+        setTargetSpeed(0);
+    }
+    
     public TalonSRX getAngleMotor(){
         return mAngleMotor;
     }
@@ -81,6 +92,7 @@ public class SwerveMod{
             else{
             targetSpeed = 0;
             }
+
     }
 
     public Vector2 getModulePosition(){
@@ -99,14 +111,15 @@ public class SwerveMod{
         return lastTargetAngle;
     }
 
-    public synchronized void setDriveInverted(boolean inverted) {
+    public void setDriveInverted(boolean inverted) {
         driveInverted = inverted;
     }
 
     public synchronized void setTargetAngle(double targetAngle) {
+        
         targetAngle = modulate360(targetAngle);
         targetAngle += mZeroOffset;
-        double currentAngle = mAngleMotor.getSelectedSensorPosition(0) * (360.0/1024.0);
+        double currentAngle = periodicIO.periodicPosition;
         double currentAngleMod = modulate360(currentAngle);
         if (currentAngleMod < 0) currentAngleMod += 360;
 
@@ -115,6 +128,14 @@ public class SwerveMod{
             targetAngle += 360;
         } else if (delta < -180) {
             targetAngle -= 360;
+        }
+
+        if(Util.shouldReverse(targetAngle, periodicIO.periodicPosition)){
+            periodicIO.setPosition(toCounts(targetAngle + 180.0));
+            setDriveInverted(true);
+        }else{
+            periodicIO.setPosition(toCounts(targetAngle));
+            setDriveInverted(false);
         }
         
         /*
@@ -131,18 +152,17 @@ public class SwerveMod{
         } else { 
             setDriveInverted(true);
         }
-        */
+        
 
         targetAngle += currentAngle - currentAngleMod;
         lastTargetAngle = targetAngle;
-        
-        targetAngle = toCounts(targetAngle);
-        mAngleMotor.set(ControlMode.Position, targetAngle);
+        */
+        //periodicIO.setPosition(toCounts(targetAngle));
     }
 
     public synchronized void setTargetSpeed(double speed) {
         if (driveInverted) {speed = -speed;}
-        mDriveMotor.set(ControlMode.PercentOutput, speed);
+        periodicIO.setSpeed(speed);
     } 
 
 
@@ -156,5 +176,40 @@ public class SwerveMod{
         if ( relativePosition < 0){ relativePosition += 360;}
         return relativePosition;
     }
+
+    @Override
+	public synchronized void readPeriodicInputs() {
+        periodicIO.periodicPosition = mAngleMotor.getSelectedSensorPosition(0) * (360.0/1024.0);
+        //TODO: *CB* need to add periodicSpeed when we use speed encoders
+	}
+
+	@Override
+	public synchronized void writePeriodicOutputs() {
+        mDriveMotor.set(ControlMode.PercentOutput, periodicIO.speedDemand);
+        mAngleMotor.set(ControlMode.Position, periodicIO.positionDemand);
+    }
+
+    @Override
+	public void outputTelemetry() {
+    }
+
+
+    public static class PeriodicIO{
+		//Inputs
+        public double periodicSpeed = 0.0;
+        public double periodicPosition = 0.0;
+		
+
+		//Outputs
+		public double speedDemand;
+        public double positionDemand;
+        public void setPosition(double outputPosition){
+            positionDemand = outputPosition;
+        }
+        public void setSpeed(double outputSpeed){
+            speedDemand = outputSpeed;
+        }
+	}
+	
 
 }
