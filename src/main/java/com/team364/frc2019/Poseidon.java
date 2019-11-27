@@ -102,7 +102,8 @@ public class Poseidon extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     try {
-			//driver.update();
+      //driver.update();
+      swerve.sendInput(-oi.controller.getRawAxis(1), oi.controller.getRawAxis(0), oi.controller.getRawAxis(4));
 		} catch (Throwable t) {
 			CrashTracker.logThrowableCrash(t);
 			throw t;

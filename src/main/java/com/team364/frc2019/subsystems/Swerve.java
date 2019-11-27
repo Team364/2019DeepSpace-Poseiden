@@ -3,6 +3,7 @@ package com.team364.frc2019.subsystems;
 import static com.team364.frc2019.Conversions.*;
 import static com.team364.frc2019.RobotMap.*;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.team1323.loops.Loop;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
 import com.team364.frc2019.misc.math.Vector2;
@@ -123,5 +124,73 @@ public class Swerve extends Subsystem {
     @Override
 	public synchronized void outputTelemetry() {
     }
+
+
+    //-------------------------------------LOOP--------------------------------------------
+    
+	private Swerve mSwerve;
+	public int cycles = 0;
+
+	double forward;
+	double strafe;
+	double rotation;
+	private Vector2 translation;
+
+	Vector2 lastTranslation;
+	double lastRotation;
+	double plzStop = 0;
+
+    
+    public void sendInput(double inputForward, double inputStrafe, double inputRotation){
+        forward = inputForward;
+        strafe = inputStrafe;
+        rotation = inputRotation;
+    }
+
+	private final Loop loop = new Loop(){
+
+		@Override
+		public void onStart(double timestamp) {
+			synchronized(Swerve.this){
+				mSwerve.stopDriveMotors();
+			}
+		}
+
+		@Override
+		public void onLoop(double timestamp) {
+			synchronized(Swerve.this){
+				boolean zeroPoint = false;
+				if(zeroPoint){
+					translation = new Vector2(-1, 0);
+				}
+				else{
+					translation = new Vector2(forward, strafe);
+				}
+				if (Math.abs(forward) > STICKDEADBAND || Math.abs(strafe) > STICKDEADBAND || Math.abs(rotation) > STICKDEADBAND) {
+					mSwerve.holonomicDrive(translation, rotation, !zeroPoint);
+					lastTranslation = translation;
+					lastRotation = rotation;
+					cycles++;
+
+				} else {
+					if(cycles != 0){
+
+						mSwerve.holonomicDrive(lastTranslation, lastRotation, false);
+					}
+				}	
+				if(cycles != 0){
+				mSwerve.updateKinematics();
+				}
+			}
+		}
+
+		@Override
+		public void onStop(double timestamp) {
+			synchronized(Swerve.this){
+				mSwerve.stopDriveMotors();
+			}
+		}
+		
+	};
     
 }
