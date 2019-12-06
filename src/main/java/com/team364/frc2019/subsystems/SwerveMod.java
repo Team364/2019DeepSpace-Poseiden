@@ -6,6 +6,7 @@ import static com.team364.frc2019.RobotMap.*;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.StatusFrame;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team1323.lib.util.Util;
 //import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -54,6 +55,11 @@ public class SwerveMod extends Subsystem{
         angleMotor.config_kI(SLOTIDX, ANGLEI, SWERVETIMEOUT);
         angleMotor.config_kD(SLOTIDX, ANGLED, SWERVETIMEOUT);
         angleMotor.setNeutralMode(NeutralMode.Brake);
+        angleMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 10, 10);
+        angleMotor.configMotionAcceleration((int)(kSwerveRotationMaxSpeed*12.5), 10);
+    	angleMotor.configMotionCruiseVelocity((int)(kSwerveRotationMaxSpeed), 10);
+        angleMotor.set(ControlMode.Position, angleMotor.getSelectedSensorPosition(0));
+
 
         //Configure Drive Motor
         driveMotor.setNeutralMode(NeutralMode.Brake);
@@ -77,10 +83,6 @@ public class SwerveMod extends Subsystem{
 	public synchronized void stop(){
         setTargetSpeed(0);
     }
-    
-    public TalonSRX getAngleMotor(){
-        return mAngleMotor;
-    }
 
     public void setTargetVelocity(Vector2 velocity, boolean speed, double rotation){
             this.velocity = velocity;
@@ -99,105 +101,43 @@ public class SwerveMod extends Subsystem{
         return modulePosition;
     }
 
-    public TalonSRX getDriveMotor() {
-        return mDriveMotor;
+
+    public synchronized void setTargetAngle(double fTargetAngle) {
+        double newAngle = Util.placeInAppropriate0To360Scope(periodicIO.periodicAngle, fTargetAngle + mZeroOffset);
+		double setpoint = toCounts(newAngle);
+        periodicIO.setPosition(setpoint);
     }
 
-    public double getDrivePos(){
-        return mDriveMotor.getSelectedSensorPosition(SLOTIDX);
-    }
-    
-    public double getTargetAngle() {
-        return lastTargetAngle;
-    }
-
-    public void setDriveInverted(boolean inverted) {
-        driveInverted = inverted;
-    }
-
-    public synchronized void setTargetAngle(double targetAngle) {
-        
-        targetAngle = modulate360(targetAngle);
-        targetAngle += mZeroOffset;
-        double currentAngle = periodicIO.periodicPosition;
-        double currentAngleMod = modulate360(currentAngle);
-        if (currentAngleMod < 0) currentAngleMod += 360;
-
-        double delta = currentAngleMod - targetAngle;
-        if (delta > 180) {
-            targetAngle += 360;
-        } else if (delta < -180) {
-            targetAngle -= 360;
-        }
-
-        if(Util.shouldReverse(targetAngle, periodicIO.periodicPosition)){
-            periodicIO.setPosition(toCounts(targetAngle + 180.0));
-            setDriveInverted(true);
-        }else{
-            periodicIO.setPosition(toCounts(targetAngle));
-            setDriveInverted(false);
-        }
-        
-        /*
-        delta = currentAngleMod - targetAngle;
-        if (delta > 90 || delta < -90) {
-            if(delta > 90){
-                targetAngle += 180;
-            }
-            else if(delta < -90){
-                targetAngle -= 180;
-            }            
-            setDriveInverted(false);
-
-        } else { 
-            setDriveInverted(true);
-        }
-        
-
-        targetAngle += currentAngle - currentAngleMod;
-        lastTargetAngle = targetAngle;
-        */
-        //periodicIO.setPosition(toCounts(targetAngle));
-    }
-
-    public synchronized void setTargetSpeed(double speed) {
-        if (driveInverted) {speed = -speed;}
-        periodicIO.setSpeed(speed);
+    public synchronized void setTargetSpeed(double fSpeed) {
+        periodicIO.setSpeed(fSpeed);
     } 
 
 
 
-
-    /**
-     * @return Current Angle of Module
-     */
-    public  double getPos(){
-        double relativePosition = modulate360(toDegrees(mAngleMotor.getSelectedSensorPosition()));
-        if ( relativePosition < 0){ relativePosition += 360;}
-        return relativePosition;
-    }
-
     @Override
 	public synchronized void readPeriodicInputs() {
-        periodicIO.periodicPosition = mAngleMotor.getSelectedSensorPosition(0) * (360.0/1024.0);
+        periodicIO.periodicAngle = mAngleMotor.getSelectedSensorPosition(0) * (360.0/1024.0);
         //TODO: *CB* need to add periodicSpeed when we use speed encoders
 	}
 
 	@Override
 	public synchronized void writePeriodicOutputs() {
         mDriveMotor.set(ControlMode.PercentOutput, periodicIO.speedDemand);
-        mAngleMotor.set(ControlMode.Position, periodicIO.positionDemand);
+        mAngleMotor.set(ControlMode.MotionMagic, periodicIO.positionDemand);
     }
 
     @Override
 	public void outputTelemetry() {
     }
 
+    public double getModuleAngle(){
+        return periodicIO.periodicAngle - mZeroOffset;
+    }
 
     public static class PeriodicIO{
 		//Inputs
         public double periodicSpeed = 0.0;
-        public double periodicPosition = 0.0;
+        public double periodicAngle = 0.0;
 		
 
 		//Outputs

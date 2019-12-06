@@ -24,11 +24,11 @@ public class RobotMap {
 
     //Offsets 
     /**Front Right */
-    public static final int MOD0OFFSET = 67 + 30 - 44;
+    public static final int MOD0OFFSET = 53;
     /**Front Left */
     public static final int MOD1OFFSET = 82;
     /**Back Left */
-    public static final int MOD2OFFSET = 215 - 20;
+    public static final int MOD2OFFSET = 195;
     /**Back Right */
     public static final int MOD3OFFSET = 124;
 
@@ -66,6 +66,7 @@ public class RobotMap {
     public static final int ANGLEPEAKCURRENT = 30;
     public static final int ANGLEPEAKCURRENTDURATION = 100;
     public static final boolean ANGLEENABLECURRENTLIMIT = true;
+    public static final double kSwerveRotationMaxSpeed = 1250.0 * 0.8;
 
     public static final int DRIVECONTINUOUSCURRENTLIMIT = 30;
     public static final int DRIVEPEAKCURRENT = 30;

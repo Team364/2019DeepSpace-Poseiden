@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.team1323.lib.util.Util;
 import com.team1323.loops.ILooper;
 import com.team1323.loops.Loop;
 
@@ -25,7 +26,6 @@ public class Swerve extends Subsystem {
 	 */
     private SwerveMod[] mSwerveModules;
     private List<SwerveMod> modules;
-    private double check = 0.0;
 
 
     public Swerve() {
@@ -84,13 +84,17 @@ public class Swerve extends Subsystem {
                 newTranslation = translation;
                 velocity = mod.getModulePosition().normal().scale(deadband(rotation)).add(newTranslation);
                 mod.setTargetVelocity(velocity, speed, rotation);
-                check = translation.x;
             }        
     }
     public void updateKinematics(){
         for (SwerveMod mod : getSwerveModules()){
-            mod.setTargetAngle(mod.targetAngle);
-            mod.setTargetSpeed(mod.targetSpeed);
+            if(Util.shouldReverse(mod.targetAngle, mod.getModuleAngle())){
+                mod.setTargetAngle(mod.targetAngle += 180);
+                mod.setTargetSpeed(mod.targetSpeed * -1);
+            }else{
+                mod.setTargetAngle(mod.targetAngle);
+                mod.setTargetSpeed(mod.targetSpeed);
+            }
         }
     }
 
@@ -130,7 +134,6 @@ public class Swerve extends Subsystem {
     @Override
 	public synchronized void outputTelemetry() {
         modules.forEach((m) -> m.outputTelemetry());
-        //System.out.println(check);
     }
     @Override
 	public void registerEnabledLoops(ILooper enabledLooper) {
@@ -171,7 +174,6 @@ public class Swerve extends Subsystem {
 
         } else {
             if(cycles != 0){
-
                 holonomicDrive(lastTranslation, lastRotation, false);
             }
         }	
