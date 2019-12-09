@@ -15,7 +15,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import com.team364.frc2019.misc.math.Vector2;
  
 
-public class Swerve extends Subsystem {
+public class Swerve extends Subsystem implements Signal{
 
     private static Swerve Instance = null;
 	/*
@@ -151,13 +151,9 @@ public class Swerve extends Subsystem {
 	private Vector2 translation;
 
 	Vector2 lastTranslation;
-	double lastRotation;
+    double lastRotation;
     
-    public void sendInput(double inputForward, double inputStrafe, double inputRotation){
-        forward = inputForward;
-        strafe = inputStrafe;
-        rotation = inputRotation;
-    }
+
     public synchronized void updateControlCycle(){
         boolean zeroPoint = false;
         if(zeroPoint){
@@ -216,6 +212,21 @@ public class Swerve extends Subsystem {
 	@Override
 	public synchronized void writePeriodicOutputs() {
 		modules.forEach((m) -> m.writePeriodicOutputs());
-	}
+    }
+    //--------------------------------------SIGNAL----------------------------------
+    @Override
+    private final Signal signal = new Signal(){
+
+		@Override
+        public void checkInputs(double inputForward, double inputStrafe, double inputRotation){
+            synchronized(Swerve.this){
+                forward = inputForward;
+                strafe = inputStrafe;
+                rotation = inputRotation;
+            }
+
+        }
+		
+    };
     
 }

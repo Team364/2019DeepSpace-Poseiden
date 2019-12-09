@@ -103,7 +103,11 @@ public class Poseidon extends TimedRobot {
   public void teleopPeriodic() {
     try {
       //driver.update();
-      swerve.sendInput(-oi.controller.getRawAxis(1), oi.controller.getRawAxis(0), oi.controller.getRawAxis(4));
+      subsytems.signal.sendInput(-oi.controller.getRawAxis(1), oi.controller.getRawAxis(0), oi.controller.getRawAxis(4));
+      //close signal if done
+      if(subsystems.signal.returnSignal == true){
+        subsystem.signal.close();
+      }
       subsystems.outputToSmartDashboard();
 		} catch (Throwable t) {
 			CrashTracker.logThrowableCrash(t);

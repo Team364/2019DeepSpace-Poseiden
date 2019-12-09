@@ -1,6 +1,7 @@
 package com.team364.frc2019.subsystems;
 
 import com.team1323.loops.ILooper;
+import com.team364.frc2019.Signal;
 
 /**
  * The Subsystem abstract class, which serves as a basic framework for all robot subsystems. Each subsystem outputs
@@ -12,7 +13,15 @@ import com.team1323.loops.ILooper;
  * state; the robot code will try to match the two states with actions. Each Subsystem also is responsible for
  * instantializing all member components at the start of the match.
  */
-public abstract class Subsystem {
+public abstract class Subsystem{
+
+    private final Signal signal = new Signal(){
+        @Override
+        public void checkInputs(){
+            
+        }
+    };
+    
     public void writeToLog() {
     }
 
@@ -27,6 +36,10 @@ public abstract class Subsystem {
     public abstract void outputTelemetry();
 
     public abstract void stop();
+
+    public void sendInput() {
+
+    }
 
     public void zeroSensors() {
     }
