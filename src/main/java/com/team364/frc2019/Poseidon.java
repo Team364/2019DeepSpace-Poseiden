@@ -137,7 +137,7 @@ public class Poseidon extends TimedRobot {
 
   public void standardControl(){
     if(operatorOi.setLiftPositionLow){
-      s.simpleElevatorState(1);
+      s.SimpleElevatorState(8);
     }
   }
 }

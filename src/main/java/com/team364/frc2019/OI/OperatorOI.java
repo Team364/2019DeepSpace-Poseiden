@@ -11,7 +11,7 @@ public class OperatorOI {
     //Xbox One Wired Controller
     public Joystick buttoBoxo;
     //Lift Buttons
-    public JoystickButton setLiftPositionLow;
+    public boolean setLiftPositionLow;
     public JoystickButton setLiftPositionMedium;
     public JoystickButton setLiftPositionHigh;
     public JoystickButton setLiftPositionCargo;
@@ -27,7 +27,7 @@ public class OperatorOI {
         //Initialize Operator Controller
         buttoBoxo = new Joystick(1);
         //Set Lift Position to level 1 for scoring in rocket and hatches on cargo ship
-        setLiftPositionLow = new JoystickButton(buttoBoxo, 8);
+        setLiftPositionLow = buttoBoxo.getRawButton(1);
         //Set Lift Position to level 2 for scoring in rocket
         setLiftPositionMedium = new JoystickButton(buttoBoxo, 9);
         //Set Lift Position to level 3 for scoring in rocket

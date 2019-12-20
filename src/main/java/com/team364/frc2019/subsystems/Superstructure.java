@@ -253,5 +253,9 @@ public class Superstructure extends Subsystem {
 			elevator.heightRequest(elevatorHeight)), true);
 		request(state); 
 	}
+	public void disabledState(){
+		RequestList state = new RequestList(null, true);
+		request(state); 
+	}
 
 }
