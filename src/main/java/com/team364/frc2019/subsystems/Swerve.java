@@ -4,6 +4,7 @@ import static com.team364.frc2019.Conversions.*;
 import static com.team364.frc2019.RobotMap.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
@@ -12,10 +13,11 @@ import com.team1323.loops.ILooper;
 import com.team1323.loops.Loop;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
-import com.team364.frc2019.misc.math.Vector2;
- 
 
-public class Swerve extends Subsystem implements Signal{
+import com.team364.frc2019.OI.DriverOI;
+import com.team364.frc2019.misc.math.Vector2;
+
+public class Swerve extends Subsystem {
 
     private static Swerve Instance = null;
 	/*
@@ -26,7 +28,6 @@ public class Swerve extends Subsystem implements Signal{
 	 */
     private SwerveMod[] mSwerveModules;
     private List<SwerveMod> modules;
-
 
     public Swerve() {
             mSwerveModules = new SwerveMod[] {
@@ -63,7 +64,9 @@ public class Swerve extends Subsystem implements Signal{
             modules = Arrays.asList(mSwerveModules[0], mSwerveModules[1], mSwerveModules[2], mSwerveModules[3]);
 
     } 
-
+    public String getName(){
+        return "Swerve";
+    }
     public synchronized static Swerve getInstance() {
         if (Instance == null) {
           Instance = new Swerve();
@@ -152,8 +155,11 @@ public class Swerve extends Subsystem implements Signal{
 
 	Vector2 lastTranslation;
     double lastRotation;
-    
-
+    public void sendInput(double forward, double strafe, double rotation){
+        this.forward = forward;
+        this.strafe = strafe;
+        this.rotation = rotation;
+    }
     public synchronized void updateControlCycle(){
         boolean zeroPoint = false;
         if(zeroPoint){
@@ -177,7 +183,9 @@ public class Swerve extends Subsystem implements Signal{
         updateKinematics();
         }
     }
-
+    public Loop getLoop(){
+        return loop;
+    }
 	private final Loop loop = new Loop(){
 
 		@Override
@@ -192,7 +200,7 @@ public class Swerve extends Subsystem implements Signal{
 			synchronized(Swerve.this){
 				updateControlCycle();
 			}
-		}
+        }
 
 		@Override
 		public void onStop(double timestamp) {
@@ -202,7 +210,6 @@ public class Swerve extends Subsystem implements Signal{
 		}
 		
     };
-    
     
 	@Override
 	public synchronized void readPeriodicInputs() {
@@ -214,19 +221,5 @@ public class Swerve extends Subsystem implements Signal{
 		modules.forEach((m) -> m.writePeriodicOutputs());
     }
     //--------------------------------------SIGNAL----------------------------------
-    @Override
-    private final Signal signal = new Signal(){
-
-		@Override
-        public void checkInputs(double inputForward, double inputStrafe, double inputRotation){
-            synchronized(Swerve.this){
-                forward = inputForward;
-                strafe = inputStrafe;
-                rotation = inputRotation;
-            }
-
-        }
-		
-    };
     
 }

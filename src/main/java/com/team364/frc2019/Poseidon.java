@@ -10,12 +10,14 @@ package com.team364.frc2019;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
+import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 
 import java.util.Arrays;
 
 import com.team1323.lib.util.CrashTracker;
 import com.team1323.loops.Looper;
+import com.team364.frc2019.Commands.ElevateToPosition;
 import com.team364.frc2019.OI.*;
 import com.team364.frc2019.subsystems.*;
 
@@ -27,11 +29,14 @@ import com.team364.frc2019.subsystems.*;
  * project.
  */
 public class Poseidon extends TimedRobot {
-  public static DriverOI oi;
+  public static DriverOI driverOi;
+  public static OperatorOI operatorOi;
 
-  private Swerve swerve;
-  private Superstructure s;
-	private SubsystemManager subsystems;
+  public static Superstructure s;
+  public static Swerve swerve;
+  public static Elevator elevator;
+
+	public static SubsystemManager subsystems;
 
 	private Looper enabledLooper = new Looper();
 	private Looper disabledLooper = new Looper();
@@ -46,14 +51,16 @@ public class Poseidon extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    oi = new DriverOI();
-    s = Superstructure.getInstance();
+    driverOi = new DriverOI();
+    operatorOi = new OperatorOI();
+    s = new Superstructure();
     swerve = Swerve.getInstance();
+    elevator = Elevator.getInstance();
     subsystems = new SubsystemManager(
-      Arrays.asList(swerve));
+      Arrays.asList(s, swerve, elevator));
 
     subsystems.registerEnabledLoops(enabledLooper);
-		subsystems.registerDisabledLoops(disabledLooper);
+    subsystems.registerDisabledLoops(disabledLooper);
   }
 
   /**
@@ -92,7 +99,7 @@ public class Poseidon extends TimedRobot {
   public void teleopInit() {
 		try {
 			disabledLooper.stop();
-			enabledLooper.start();
+      enabledLooper.start();
 		} catch (Throwable t) {
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -102,13 +109,8 @@ public class Poseidon extends TimedRobot {
   @Override
   public void teleopPeriodic() {
     try {
-      //driver.update();
-      subsytems.signal.sendInput(-oi.controller.getRawAxis(1), oi.controller.getRawAxis(0), oi.controller.getRawAxis(4));
-      //close signal if done
-      if(subsystems.signal.returnSignal == true){
-        subsystem.signal.close();
-      }
       subsystems.outputToSmartDashboard();
+      swerve.sendInput(-driverOi.controller.getRawAxis(1), driverOi.controller.getRawAxis(0), driverOi.controller.getRawAxis(4));
 		} catch (Throwable t) {
 			CrashTracker.logThrowableCrash(t);
 			throw t;

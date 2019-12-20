@@ -9,11 +9,11 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatusFrame;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team1323.lib.util.Util;
+import com.team1323.loops.Loop;
 //import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.team364.frc2019.misc.math.Vector2;
 
-
-public class SwerveMod extends Subsystem{
+public class SwerveMod extends Subsystem {
     private double lastTargetAngle = 0;
     public final int moduleNumber;
 
@@ -23,7 +23,7 @@ public class SwerveMod extends Subsystem{
     private final TalonSRX mDriveMotor;
     private Vector2 modulePosition;
     private boolean driveInverted = false;
-    
+
     public double targetAngle;
     public double targetSpeed;
     public double smartAngle;
@@ -32,8 +32,8 @@ public class SwerveMod extends Subsystem{
 
     private PeriodicIO periodicIO = new PeriodicIO();
 
-
-    public SwerveMod(int moduleNumber, Vector2 modulePosition, TalonSRX angleMotor, TalonSRX driveMotor, boolean invertDrive, boolean invertSensorPhase, int zeroOffset) {
+    public SwerveMod(int moduleNumber, Vector2 modulePosition, TalonSRX angleMotor, TalonSRX driveMotor,
+            boolean invertDrive, boolean invertSensorPhase, int zeroOffset) {
         this.moduleNumber = moduleNumber;
         this.modulePosition = modulePosition;
         mAngleMotor = angleMotor;
@@ -42,9 +42,6 @@ public class SwerveMod extends Subsystem{
         targetAngle = 0;
         targetSpeed = 0;
         currentAngle = 0;
-
-        
-
 
         // Configure Angle Motor
         angleMotor.configFactoryDefault();
@@ -56,16 +53,14 @@ public class SwerveMod extends Subsystem{
         angleMotor.config_kD(SLOTIDX, ANGLED, SWERVETIMEOUT);
         angleMotor.setNeutralMode(NeutralMode.Brake);
         angleMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 10, 10);
-        angleMotor.configMotionAcceleration((int)(kSwerveRotationMaxSpeed*12.5), 10);
-    	angleMotor.configMotionCruiseVelocity((int)(kSwerveRotationMaxSpeed), 10);
+        angleMotor.configMotionAcceleration((int) (kSwerveRotationMaxSpeed * 12.5), 10);
+        angleMotor.configMotionCruiseVelocity((int) (kSwerveRotationMaxSpeed), 10);
         angleMotor.set(ControlMode.Position, angleMotor.getSelectedSensorPosition(0));
 
-
-        //Configure Drive Motor
+        // Configure Drive Motor
         driveMotor.setNeutralMode(NeutralMode.Brake);
         driveMotor.setInverted(invertDrive);
 
-        
         // Setup Current Limiting
         angleMotor.configContinuousCurrentLimit(ANGLECONTINUOUSCURRENTLIMIT, SWERVETIMEOUT);
         angleMotor.configPeakCurrentLimit(ANGLEPEAKCURRENT, SWERVETIMEOUT);
@@ -80,76 +75,74 @@ public class SwerveMod extends Subsystem{
     }
 
     @Override
-	public synchronized void stop(){
+    public synchronized void stop() {
         setTargetSpeed(0);
     }
 
-    public void setTargetVelocity(Vector2 velocity, boolean speed, double rotation){
-            this.velocity = velocity;
-            targetAngle = velocity.getAngle().toDegrees();
-            smartAngle = targetAngle;
-            if(speed){
+    public void setTargetVelocity(Vector2 velocity, boolean speed, double rotation) {
+        this.velocity = velocity;
+        targetAngle = velocity.getAngle().toDegrees();
+        smartAngle = targetAngle;
+        if (speed) {
             targetSpeed = velocity.length;
-            }
-            else{
+        } else {
             targetSpeed = 0;
-            }
+        }
 
     }
 
-    public Vector2 getModulePosition(){
+    public Vector2 getModulePosition() {
         return modulePosition;
     }
 
-
     public synchronized void setTargetAngle(double fTargetAngle) {
         double newAngle = Util.placeInAppropriate0To360Scope(periodicIO.periodicAngle, fTargetAngle + mZeroOffset);
-		double setpoint = toCounts(newAngle);
+        double setpoint = toCounts(newAngle);
         periodicIO.setPosition(setpoint);
     }
 
     public synchronized void setTargetSpeed(double fSpeed) {
         periodicIO.setSpeed(fSpeed);
-    } 
-
-
+    }
 
     @Override
-	public synchronized void readPeriodicInputs() {
-        periodicIO.periodicAngle = mAngleMotor.getSelectedSensorPosition(0) * (360.0/1024.0);
-        //TODO: *CB* need to add periodicSpeed when we use speed encoders
-	}
+    public synchronized void readPeriodicInputs() {
+        periodicIO.periodicAngle = mAngleMotor.getSelectedSensorPosition(0) * (360.0 / 1024.0);
+        // TODO: *CB* need to add periodicSpeed when we use speed encoders
+    }
 
-	@Override
-	public synchronized void writePeriodicOutputs() {
+    @Override
+    public synchronized void writePeriodicOutputs() {
         mDriveMotor.set(ControlMode.PercentOutput, periodicIO.speedDemand);
         mAngleMotor.set(ControlMode.MotionMagic, periodicIO.positionDemand);
     }
 
     @Override
-	public void outputTelemetry() {
+    public void outputTelemetry() {
     }
 
-    public double getModuleAngle(){
+    public double getModuleAngle() {
         return periodicIO.periodicAngle - mZeroOffset;
     }
-
-    public static class PeriodicIO{
-		//Inputs
+    public Loop getLoop(){
+        return null;
+    }
+    public static class PeriodicIO {
+        // Inputs
         public double periodicSpeed = 0.0;
         public double periodicAngle = 0.0;
-		
 
-		//Outputs
-		public double speedDemand;
+        // Outputs
+        public double speedDemand;
         public double positionDemand;
-        public void setPosition(double outputPosition){
+
+        public void setPosition(double outputPosition) {
             positionDemand = outputPosition;
         }
-        public void setSpeed(double outputSpeed){
+
+        public void setSpeed(double outputSpeed) {
             speedDemand = outputSpeed;
         }
-	}
-	
+    }
 
 }

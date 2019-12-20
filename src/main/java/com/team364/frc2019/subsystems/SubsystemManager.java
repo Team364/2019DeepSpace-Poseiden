@@ -1,11 +1,16 @@
 package com.team364.frc2019.subsystems;
 
+import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.team1323.loops.ILooper;
 import com.team1323.loops.Loop;
 import com.team1323.loops.Looper;
+import com.team364.frc2019.OI.DriverOI;
+import com.team364.frc2019.OI.OperatorOI;
+
+import edu.wpi.first.wpilibj.Joystick;
 
 /**
  * Used to reset, start, stop, and update all subsystems at once
@@ -42,7 +47,7 @@ public class SubsystemManager implements ILooper {
         return emergency;
     }
 
-    private class EnabledLoop implements Loop {
+    private class EnabledLoop extends Loop {
 
         @Override
         public void onStart(double timestamp) {
@@ -72,7 +77,7 @@ public class SubsystemManager implements ILooper {
         }
     }
 
-    private class DisabledLoop implements Loop {
+    private class DisabledLoop extends Loop {
 
         @Override
         public void onStart(double timestamp) {
@@ -108,4 +113,5 @@ public class SubsystemManager implements ILooper {
     public void register(Loop loop) {
         mLoops.add(loop);
     }
+
 }

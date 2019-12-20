@@ -1,9 +1,11 @@
-package frc.robot.commands;
+package com.team364.frc2019.Commands;
 
+import com.team364.frc2019.Poseidon;
+import com.team364.frc2019.RobotMap;
+import com.team364.frc2019.States;
+import com.team364.frc2019.subsystems.Subsystem;
 import edu.wpi.first.wpilibj.command.Command;
-import frc.robot.Neptune;
-import frc.robot.RobotMap;
-import frc.robot.States;
+
 
 public class ElevateToPosition extends Command {
 
@@ -15,6 +17,7 @@ public class ElevateToPosition extends Command {
     private double intake;
     private double liftStartConfig;
     private double desiredHeight;
+    private boolean finish;
 
     private double wantedAngle;
     private double intakeCargo;
@@ -35,18 +38,19 @@ public class ElevateToPosition extends Command {
     private int l3cam;
     private int frontCam;
     int intakeCam;
-
     public ElevateToPosition(int Height) {
         desiredHeight = Height;
-        requires(Neptune.elevator);
+        requires(Poseidon.elevator);
+        loopRunner(Poseidon.elevator);
         setInterruptible(true);
-        setTimeout(0.05);
+        //setTimeout(0.05);
     }
 
     @Override
     protected void initialize() {
-        Neptune.manualControl = false;
         States.actionState = States.ActionStates.SCORE_ACT;
+        finish = false;
+
     }
 
     @Override
@@ -95,33 +99,33 @@ public class ElevateToPosition extends Command {
         }
 
         if (desiredHeight == 0) {
-            Neptune.elevator.setPlayCruiseVelocity();
+            Poseidon.elevator.setPlayCruiseVelocity();
             wantedPosition = intake;
             wantedAngle = intakeCargo;
             camera = l1cam;
             States.led = States.LEDstates.INTAKE_MODE;
         } else if (desiredHeight == 1) {
-            Neptune.elevator.setPlayCruiseVelocity();
+            Poseidon.elevator.setPlayCruiseVelocity();
             wantedPosition = low;
             wantedAngle = lvlone;
             camera = l1cam;
         } else if (desiredHeight == 2) {
-            Neptune.elevator.setPlayCruiseVelocity();
+            Poseidon.elevator.setPlayCruiseVelocity();
             wantedPosition = med;
             wantedAngle = perpendicularToGround;
             camera = l2cam;
         } else if (desiredHeight == 3) {
-            Neptune.elevator.setPlayCruiseVelocity();
+            Poseidon.elevator.setPlayCruiseVelocity();
             wantedPosition = high;
             wantedAngle = lvlthree;
             camera = l3cam;
         } else if (desiredHeight == 4) {
-            Neptune.elevator.setPlayCruiseVelocity();
+            Poseidon.elevator.setPlayCruiseVelocity();
             wantedPosition = cargo;
             wantedAngle = 4200;
             camera = frontCam;
         } else if (desiredHeight == 5) {
-            Neptune.elevator.setPlayCruiseVelocity();
+            Poseidon.elevator.setPlayCruiseVelocity();
             wantedPosition = liftStartConfig;
             wantedAngle = 300;
             camera = frontCam;
@@ -131,31 +135,31 @@ public class ElevateToPosition extends Command {
                 States.led = States.LEDstates.PASSIVE;
             }
         } else if (desiredHeight == 6) {
-            Neptune.elevator.setPlayCruiseVelocity();
+            Poseidon.elevator.setPlayCruiseVelocity();
             wantedPosition = 91000;
             wantedAngle = lvlone;
             camera = frontCam;
         } else if (desiredHeight == 7) {
-            Neptune.elevator.setClimbCruiseVelocity();
+            Poseidon.elevator.setClimbCruiseVelocity();
             wantedPosition = 100;
             wantedAngle = 1500;
             camera = frontCam;
         } else if (desiredHeight == 8) {//lift after intaking
-            Neptune.elevator.setPlayCruiseVelocity();
+            Poseidon.elevator.setPlayCruiseVelocity();
             wantedPosition = low + 9000;
             wantedAngle = lvlone;
             camera = l1cam;
         } else if(desiredHeight == 9){
-            Neptune.elevator.setPlayCruiseVelocity();
+            Poseidon.elevator.setPlayCruiseVelocity();
             wantedPosition = RobotMap.liftLowC;
             wantedAngle = lvlone;
             camera = frontCam;
         } else if(desiredHeight == 10){//Not used it seems
-            Neptune.elevator.setPlayCruiseVelocity();
+            Poseidon.elevator.setPlayCruiseVelocity();
             wantedPosition = RobotMap.liftMedH - 3000;
             wantedAngle = 1000;
         } else if(desiredHeight == 11){
-            Neptune.elevator.setPlayCruiseVelocity();
+            Poseidon.elevator.setPlayCruiseVelocity();
             wantedPosition = liftStartConfig;
             wantedAngle = 10;
             camera = frontCam;
@@ -163,13 +167,14 @@ public class ElevateToPosition extends Command {
         if (wantedPosition > 132000) {
             wantedPosition = 132000;
         }
-        Neptune.elevator.elevateTo(wantedPosition, wantedAngle);
-        Neptune.elevator.setCamera(camera);
+        Poseidon.elevator.elevateTo(wantedPosition, wantedAngle);
+        Poseidon.elevator.setCamera(camera);
+        finish = true;
     }
 
     @Override
     protected boolean isFinished() {
-        return isTimedOut();
+        return finish;
     }
 
     @Override

@@ -1,14 +1,16 @@
 package com.team1323.loops;
 
+import java.util.List;
+
 /**
- * Interface for loops, which are routine that run periodically in the robot code (such as periodic gyroscope
- * calibration, etc.)
+ * Interface for loops, which are routine that run periodically in the robot
+ * code (such as periodic gyroscope calibration, etc.)
  */
-public interface Loop {
+public abstract class Loop {
 
-    public void onStart(double timestamp);
+    public abstract void onStart(double timestamp);
 
-    public void onLoop(double timestamp);
+    public abstract void onLoop(double timestamp);
 
-    public void onStop(double timestamp);
+    public abstract void onStop(double timestamp);
 }
