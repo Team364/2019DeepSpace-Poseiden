@@ -134,10 +134,6 @@ public class Superstructure extends Subsystem {
 		@Override
 		public void onLoop(double timestamp) {
 			synchronized(Superstructure.this){
-
-				
-				double elevatorHeight;
-				
 				if(!activeRequestsCompleted){
 					if(newRequests){
 						if(activeRequests.isParallel()){
@@ -252,7 +248,7 @@ public class Superstructure extends Subsystem {
 	}
 
 	/////States/////
-	public void ballScoringState(double elevatorHeight){
+	public void SimpleElevatorState(double elevatorHeight){
 		RequestList state = new RequestList(Arrays.asList(
 			elevator.heightRequest(elevatorHeight)), true);
 		request(state); 

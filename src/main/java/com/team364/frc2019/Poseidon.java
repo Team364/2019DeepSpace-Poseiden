@@ -134,4 +134,10 @@ public class Poseidon extends TimedRobot {
   @Override
   public void testPeriodic() {
   }
+
+  public void standardControl(){
+    if(operatorOi.setLiftPositionLow){
+      s.simpleElevatorState(1);
+    }
+  }
 }
