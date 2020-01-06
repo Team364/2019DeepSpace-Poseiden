@@ -187,20 +187,6 @@ public class Superstructure extends Subsystem {
 		
 	};
 	
-	public synchronized void sendManualInput(double wristOutput, double elevatorOutput, double jackOutput){
-		RequestList list = RequestList.emptyList();
-
-		if(elevatorOutput != 0){
-			list.add(elevator.openLoopRequest(elevatorOutput));
-		}else if(elevator.isOpenLoop()){
-			list.add(elevator.lockHeightRequest());
-		}
-
-		if(!list.isEmpty()){
-			request(list);
-		}
-	}
-	
 	public void enableCompressor(boolean enable){
 		compressor.setClosedLoopControl(enable);
 	}
@@ -250,9 +236,15 @@ public class Superstructure extends Subsystem {
 	/////States/////
 	public void SimpleElevatorState(double elevatorHeight){
 		RequestList state = new RequestList(Arrays.asList(
-			elevator.heightRequest(elevatorHeight)), true);
+			elevator.ElevateToRequest(elevatorHeight, 0.0)), true);
 		request(state); 
 	}
+	public void ElevateToPositionState(double elevatorHeight, double armHeight){
+		RequestList state = new RequestList(Arrays.asList(
+			elevator.ElevateToRequest(elevatorHeight, armHeight)), true);
+		request(state); 
+	}
+
 	public void disabledState(){
 		RequestList state = new RequestList(null, true);
 		request(state); 

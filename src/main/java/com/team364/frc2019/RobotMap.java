@@ -180,4 +180,34 @@ public class RobotMap {
     public static final double lvl3Climb = 26000;//27000
     public static final double lvl2Climb = 11000;
     public static final double intermediateClimb = 18000;
+    
+    static double wantedPosition;
+    static double low;
+    static double cargo;
+    static double med;
+    static double high;
+    static double intake;
+    //static double liftStartConfig;
+    static double desiredHeight;
+
+    static double wantedAngle;
+    static double intakeCargo;
+    static double perpendicularToGround;
+    static double scoreOnHigh;
+    //static double armStartConfig;
+    static double desiredAngle;
+    static double custom;
+    static double lvlone;
+    static double lvltwo;
+    static double lvlthree;
+    static double liftClimb;
+    static double armClimb;
+
+    static int camera;
+    static int l1cam;
+    static int l2cam;
+    static int l3cam;
+    static int frontCam;
+    static int intakeCam;
+
 }
